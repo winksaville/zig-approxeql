@@ -27,6 +27,8 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
         if (digits == 0) return true;
 
         if (x == y) return true;
+        if ((math.isNan(x) and math.isNan(y)) or (math.isNan(-x) and math.isNan(-y))) return true;
+        if ((math.isInf(x) and math.isInf(y)) or (math.isInf(-x) and math.isInf(-y))) return true;
 
         var abs_diff = math.fabs(x - y);
         if (math.isNan(abs_diff) or math.isInf(abs_diff)) return false;
@@ -53,6 +55,18 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
             warn(" x == y");
             result = true;
             return result;
+        }
+
+        // Check for nan and inf
+        if ((math.isNan(x) and math.isNan(y)) or (math.isNan(-x) and math.isNan(-y))) {
+            warn(" both nan");
+            result = true;
+            return true;
+        }
+        if ((math.isInf(x) and math.isInf(y)) or (math.isInf(-x) and math.isInf(-y))) {
+            warn(" both nan");
+            result = true;
+            return true;
         }
 
         // Determine the difference and check if diff is a nan or inf
@@ -89,12 +103,25 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
 test "approxEql.nan.inf" {
     if (DBG) warn("\n");
 
-    assert(!approxEql(math.nan(f64), math.nan(f64), 17));
-    //assert(approxEql(-math.nan(f64), -math.nan(f64), 17));
-    //assert(approxEql(math.inf(f64), math.inf(f64), 17));
-    //assert(approxEql(-math.inf(f64), -math.inf(f64), 17));
+    assert(approxEql(math.nan(f64), math.nan(f64), 17));
+    assert(approxEql(-math.nan(f64), -math.nan(f64), 17));
+    assert(approxEql(math.inf(f64), math.inf(f64), 17));
+    assert(approxEql(-math.inf(f64), -math.inf(f64), 17));
 
-    //assert(!approxEql(math.inf(f64), math.nan(f64), 17));
+    assert(!approxEql(math.nan(f64), f64(0), 17));
+    assert(!approxEql(math.inf(f64), f64(0), 17));
+    assert(!approxEql(f64(1), math.nan(f64), 17));
+    assert(!approxEql(f64(2), math.inf(f64), 17));
+
+    assert(approxEql(math.nan(f32), math.nan(f32), 17));
+    assert(approxEql(-math.nan(f32), -math.nan(f32), 17));
+    assert(approxEql(math.inf(f32), math.inf(f32), 17));
+    assert(approxEql(-math.inf(f32), -math.inf(f32), 17));
+
+    assert(!approxEql(math.nan(f32), f32(0), 17));
+    assert(!approxEql(math.inf(f32), f32(0), 17));
+    assert(!approxEql(f32(1), math.nan(f32), 17));
+    assert(!approxEql(f32(2), math.inf(f32), 17));
 }
 
 test "approxEql.same" {
