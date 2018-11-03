@@ -515,3 +515,23 @@ test "approxEql.sub.f32" {
     assert(!approxEql(x, end, 16));
     assert(!approxEql(x, end, 17));
 }
+
+test "approxEql.atan32" {
+    const epsi: f32 = 0.000001;
+
+    if (DBG) warn("\natan(f64(0.2))={}\n", math.atan(f64(0.2)));
+    if (DBG) warn("atan(f32(0.2))={}\n", math.atan(f32(0.2)));
+
+    assert(math.approxEq(f32, math.atan(f32(0.2)), 0.197396, epsi));
+    assert(math.approxEq(f32, math.atan(f32(-0.2)), -0.197396, epsi));
+    assert(math.approxEq(f32, math.atan(f32(0.3434)), 0.330783, epsi));
+    assert(math.approxEq(f32, math.atan(f32(0.8923)), 0.728545, epsi));
+    assert(math.approxEq(f32, math.atan(f32(1.5)), 0.982794, epsi));
+
+    const digits = 7;
+    assert(approxEql(math.atan(f32(0.2)), f32(0.197396), digits));
+    assert(approxEql(math.atan(f32(-0.2)), f32(-0.197396), digits));
+    assert(approxEql(math.atan(f32(0.3434)), f32(0.330783), digits));
+    assert(approxEql(math.atan(f32(0.8923)), f32(0.728545), digits));
+    assert(approxEql(math.atan(f32(1.5)), f32(0.982794), digits));
+}
