@@ -37,7 +37,8 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
         if (abs_diff <= max_diff) return true;
 
         var largest = math.max(math.fabs(x), math.fabs(y));
-        var scaled_max_diff = max_diff * largest;
+        var scaled_max_diff = largest * max_diff / 10;
+
         return abs_diff <= scaled_max_diff;
     } else {
         var result: bool = undefined;
@@ -89,9 +90,11 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
             return result;
         }
 
-        // Scale max_diff by largest of |x| and |y| for others
+        // Scale max_diff against largest of |x| and |y|.
+        // Also tired scaled_max_diff = largest * fepsilon(T),
+        // but that doesn't work large numbers near f32/f64_max.
         var largest = math.max(math.fabs(x), math.fabs(y));
-        var scaled_max_diff = max_diff * largest;
+        var scaled_max_diff = largest * max_diff / 10;
         warn(" scaled_max_diff={}", scaled_max_diff);
 
         // Compare and return result
@@ -155,7 +158,7 @@ test "approxEql.same" {
     assert(approxEql(T(123e123), T(123e123), 17));
 }
 
-test "approxEql.fepsilon*1" {
+test "approxEql.0.fepsilon*1" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -183,7 +186,7 @@ test "approxEql.fepsilon*1" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*4" {
+test "approxEql.0.fepsilon*4" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -210,7 +213,7 @@ test "approxEql.fepsilon*4" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*5" {
+test "approxEql.0.fepsilon*5" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -237,7 +240,7 @@ test "approxEql.fepsilon*5" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*45" {
+test "approxEql.0.fepsilon*45" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -264,7 +267,7 @@ test "approxEql.fepsilon*45" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*46" {
+test "approxEql.0.fepsilon*46" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -291,7 +294,7 @@ test "approxEql.fepsilon*46" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*450" {
+test "approxEql.0.fepsilon*450" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -318,7 +321,7 @@ test "approxEql.fepsilon*450" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.fepsilon*451" {
+test "approxEql.0.fepsilon*451" {
     if (DBG) warn("\n");
     const T = f64;
     const et = fepsilon(T);
@@ -360,14 +363,15 @@ fn sum(comptime T: type, start: T, end: T, count: usize) T {
     return r;
 }
 
-test "approxEql.sum.f64" {
+test "approxEql.sum.near0.f64" {
     if (DBG) warn("\n");
     const T = f64;
     var x: T = 1;
-    var end: T = sum(T, 0, x, 10);
+    var end: T = sum(T, 0, x, 10000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
+    // "close to 0" is used and returned true
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -383,16 +387,18 @@ test "approxEql.sum.f64" {
     assert(approxEql(x, end, 12));
     assert(approxEql(x, end, 13));
     assert(approxEql(x, end, 14));
-    assert(approxEql(x, end, 15));
-    assert(approxEql(x, end, 16));
+
+    // "< 10" is used and either largest_times_fepsilon or largest_times_max_diff_10 returned false
+    assert(!approxEql(x, end, 15));
+    assert(!approxEql(x, end, 16));
     assert(!approxEql(x, end, 17));
 }
 
-test "approxEql.sum.f32" {
+test "approxEql.sum.near0.f32" {
     if (DBG) warn("\n");
     const T = f32;
     var x: T = 1;
-    var end: T = sum(T, 0, x, 10);
+    var end: T = sum(T, 0, x, 1000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
@@ -403,7 +409,9 @@ test "approxEql.sum.f32" {
     assert(approxEql(x, end, 4));
     assert(approxEql(x, end, 5));
     assert(approxEql(x, end, 6));
-    assert(approxEql(x, end, 7));
+
+    // "< 10" is used and either largest_times_fepsilon or largest_times_max_diff_10 returned false
+    assert(!approxEql(x, end, 7));
     assert(!approxEql(x, end, 8));
     assert(!approxEql(x, end, 9));
     assert(!approxEql(x, end, 10));
@@ -416,14 +424,16 @@ test "approxEql.sum.f32" {
     assert(!approxEql(x, end, 17));
 }
 
-test "approxEql.sum.f64" {
+test "approxEql.sum.large.f64" {
     if (DBG) warn("\n");
     const T = f64;
-    var x: T = 124e123;
-    var end: T = sum(T, 123e123, x, 10000000);
+    var x: T = math.f64_max / f64(2);
+    var end: T = sum(T, x / f64(2), x, 1000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
+    // ">=10" is used abs_diff=4.939e294 and using largest_times_fepsilon=1.99e292 would have failed all
+    // asserts by 0 digits. But largest_times_max_diff=8.98e306 and gave good results.
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -435,30 +445,32 @@ test "approxEql.sum.f64" {
     assert(approxEql(x, end, 8));
     assert(approxEql(x, end, 9));
     assert(approxEql(x, end, 10));
-    assert(!approxEql(x, end, 11));
-    assert(!approxEql(x, end, 12));
-    assert(!approxEql(x, end, 13));
+    assert(approxEql(x, end, 11));
+    assert(approxEql(x, end, 12));
+    assert(approxEql(x, end, 13));
     assert(!approxEql(x, end, 14));
     assert(!approxEql(x, end, 15));
     assert(!approxEql(x, end, 16));
     assert(!approxEql(x, end, 17));
 }
 
-test "approxEql.sum.f32" {
+test "approxEql.sum.large.f32" {
     if (DBG) warn("\n");
     const T = f32;
-    var x: T = 124e21;
-    var end: T = sum(T, 123e21, x, 10000);
+    var x: T = math.f32_max / f32(2);
+    var end: T = sum(T, x / f32(2), x, 100);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
+    // abs_diff=7.09e31 and using largest_times_fepsilon=2.02e31 would have failed all
+    // asserts by 0 digits. But largest_times_max_diff=1.70e37 and gave good results.
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
     assert(approxEql(x, end, 3));
     assert(approxEql(x, end, 4));
     assert(approxEql(x, end, 5));
-    assert(!approxEql(x, end, 6));
+    assert(approxEql(x, end, 6));
     assert(!approxEql(x, end, 7));
     assert(!approxEql(x, end, 8));
     assert(!approxEql(x, end, 9));
@@ -487,14 +499,15 @@ fn sub(comptime T: type, start: T, end: T, count: usize) T {
     return r;
 }
 
-test "approxEql.sub.f64" {
+test "approxEql.sub.near0.f64" {
     if (DBG) warn("\n");
     const T = f64;
     var x: T = 0;
-    var end: T = sub(T, 1, x, 10);
+    var end: T = sub(T, 1, x, 10000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
+    // Either largest_times_fepsilon or largest_times_max_diff_10 worked
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -510,19 +523,20 @@ test "approxEql.sub.f64" {
     assert(approxEql(x, end, 12));
     assert(approxEql(x, end, 13));
     assert(approxEql(x, end, 14));
-    assert(approxEql(x, end, 15));
-    assert(approxEql(x, end, 16));
+    assert(!approxEql(x, end, 15));
+    assert(!approxEql(x, end, 16));
     assert(!approxEql(x, end, 17));
 }
 
-test "approxEql.sub.f32" {
+test "approxEql.sub.near0.f32" {
     if (DBG) warn("\n");
     const T = f32;
     var x: T = 0;
-    var end: T = sub(T, 1, x, 10);
+    var end: T = sub(T, 1, x, 1000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
+    // Either largest_times_fepsilon or largest_times_max_diff_10 worked
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -530,8 +544,8 @@ test "approxEql.sub.f32" {
     assert(approxEql(x, end, 4));
     assert(approxEql(x, end, 5));
     assert(approxEql(x, end, 6));
-    assert(approxEql(x, end, 7));
-    assert(approxEql(x, end, 8));
+    assert(!approxEql(x, end, 7));
+    assert(!approxEql(x, end, 8));
     assert(!approxEql(x, end, 9));
     assert(!approxEql(x, end, 10));
     assert(!approxEql(x, end, 11));
@@ -561,4 +575,32 @@ test "approxEql.atan32" {
     assert(approxEql(math.atan(f32(0.3434)), f32(0.330783), digits));
     assert(approxEql(math.atan(f32(0.8923)), f32(0.728545), digits));
     assert(approxEql(math.atan(f32(1.5)), f32(0.982794), digits));
+}
+
+test "approxEql.123e12.3.digits" {
+    if (DBG) warn("\n");
+    assert(!approxEql(f32(122.0e12), f32(123e12), 3));
+    assert( approxEql(f32(123.0e12), f32(123e12), 3));
+    assert(!approxEql(f32(124.0e12), f32(123e12), 3));
+}
+
+test "approxEql.123e12.4.digits" {
+    if (DBG) warn("\n");
+    assert(!approxEql(f32(122.9e12), f32(123.0e12), 4));
+    assert( approxEql(f32(123.0e12), f32(123.0e12), 4));
+    assert(!approxEql(f32(123.1e12), f32(123.0e12), 4));
+}
+
+test "approxEql.993e12.3.digits" {
+    if (DBG) warn("\n");
+    assert( !approxEql(f32(992.0e12), f32(993e12), 3));
+    assert(  approxEql(f32(993.0e12), f32(993e12), 3));
+    assert( !approxEql(f32(994.0e12), f32(993e12), 3));
+}
+
+test "approxEql.993e12.4.digits" {
+    if (DBG) warn("\n");
+    assert(!approxEql(f32(992.9e12), f32(993.0e12), 4));
+    assert( approxEql(f32(993.0e12), f32(993.0e12), 4));
+    assert(!approxEql(f32(993.1e12), f32(993.0e12), 4));
 }
