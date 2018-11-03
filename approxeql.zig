@@ -6,7 +6,7 @@ const math = std.math;
 const assert = std.debug.assert;
 const warn = std.debug.warn;
 
-const epsilon = @import("epsilon.zig").epsilon;
+const fepsilon = @import("fepsilon.zig").fepsilon;
 
 // Set to true for debug output
 const DBG = false;
@@ -128,10 +128,10 @@ test "approxEql.same" {
     assert(approxEql(T(123e123), T(123e123), 17));
 }
 
-test "approxEql.epsilon*1" {
+test "approxEql.fepsilon*1" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * 1;
     assert(y == et);
@@ -156,10 +156,10 @@ test "approxEql.epsilon*1" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*4" {
+test "approxEql.fepsilon*4" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(4);
 
@@ -183,10 +183,10 @@ test "approxEql.epsilon*4" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*5" {
+test "approxEql.fepsilon*5" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(5);
 
@@ -210,10 +210,10 @@ test "approxEql.epsilon*5" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*45" {
+test "approxEql.fepsilon*45" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(45);
 
@@ -237,10 +237,10 @@ test "approxEql.epsilon*45" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*46" {
+test "approxEql.fepsilon*46" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(46);
 
@@ -264,10 +264,10 @@ test "approxEql.epsilon*46" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*450" {
+test "approxEql.fepsilon*450" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(450);
 
@@ -291,10 +291,10 @@ test "approxEql.epsilon*450" {
     assert(!approxEql(x, y, 17));
 }
 
-test "approxEql.epsilon*451" {
+test "approxEql.fepsilon*451" {
     if (DBG) warn("\n");
     const T = f64;
-    const et = epsilon(T);
+    const et = fepsilon(T);
     var x: T = 0;
     var y: T = et * T(451);
 
@@ -517,16 +517,16 @@ test "approxEql.sub.f32" {
 }
 
 test "approxEql.atan32" {
-    const epsi: f32 = 0.000001;
+    const espilon: f32 = 0.000001;
 
     if (DBG) warn("\natan(f64(0.2))={}\n", math.atan(f64(0.2)));
     if (DBG) warn("atan(f32(0.2))={}\n", math.atan(f32(0.2)));
 
-    assert(math.approxEq(f32, math.atan(f32(0.2)), 0.197396, epsi));
-    assert(math.approxEq(f32, math.atan(f32(-0.2)), -0.197396, epsi));
-    assert(math.approxEq(f32, math.atan(f32(0.3434)), 0.330783, epsi));
-    assert(math.approxEq(f32, math.atan(f32(0.8923)), 0.728545, epsi));
-    assert(math.approxEq(f32, math.atan(f32(1.5)), 0.982794, epsi));
+    assert(math.approxEq(f32, math.atan(f32(0.2)), 0.197396, espilon));
+    assert(math.approxEq(f32, math.atan(f32(-0.2)), -0.197396, espilon));
+    assert(math.approxEq(f32, math.atan(f32(0.3434)), 0.330783, espilon));
+    assert(math.approxEq(f32, math.atan(f32(0.8923)), 0.728545, espilon));
+    assert(math.approxEq(f32, math.atan(f32(1.5)), 0.982794, espilon));
 
     const digits = 7;
     assert(approxEql(math.atan(f32(0.2)), f32(0.197396), digits));
