@@ -20,7 +20,7 @@ const DBG = false;
 pub fn approxEql(x: var, y: var, digits: usize) bool {
     assert(@typeOf(x) == @typeOf(y));
     assert(@typeId(@typeOf(x)) == TypeId.Float);
-    assert(@typeId(@typeOf(x)) == TypeId.Float);
+    assert(@typeId(@typeOf(y)) == TypeId.Float);
     const T = @typeOf(x);
 
     if (!DBG) {
