@@ -70,7 +70,7 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
             return true;
         }
 
-        // Determine the difference and check if diff is a nan or inf
+        // Determine the difference and check if max_diff is a nan or inf
         var abs_diff = math.fabs(x - y);
         warn(" abs_diff={}", abs_diff);
         if (math.isNan(abs_diff) or math.isInf(abs_diff)) {
@@ -95,9 +95,11 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
         // but that doesn't work large numbers near f32/f64_max.
         var largest = math.max(math.fabs(x), math.fabs(y));
         var scaled_max_diff = largest * max_diff / 10;
-        warn(" scaled_max_diff={}", scaled_max_diff);
+        var scaled_epsilon = largest * fepsilon(T); //  * 250;
+        warn(" scaled_max_diff={} scaled_epsilon={}", scaled_max_diff, scaled_epsilon);
 
         // Compare and return result
+        //result = (abs_diff <= scaled_epsilon);
         result = (abs_diff <= scaled_max_diff);
         return result;
     }
@@ -388,7 +390,7 @@ test "approxEql.sum.near0.f64" {
     assert(approxEql(x, end, 13));
     assert(approxEql(x, end, 14));
 
-    // "< 10" is used and either largest_times_fepsilon or largest_times_max_diff_10 returned false
+    // "< 10" is used and either scaled_epsilon or scaled_max_diff returned false
     assert(!approxEql(x, end, 15));
     assert(!approxEql(x, end, 16));
     assert(!approxEql(x, end, 17));
@@ -410,7 +412,7 @@ test "approxEql.sum.near0.f32" {
     assert(approxEql(x, end, 5));
     assert(approxEql(x, end, 6));
 
-    // "< 10" is used and either largest_times_fepsilon or largest_times_max_diff_10 returned false
+    // "< 10" is used and either scaled_epsilon or scaled_max_diff returned false
     assert(!approxEql(x, end, 7));
     assert(!approxEql(x, end, 8));
     assert(!approxEql(x, end, 9));
@@ -427,13 +429,13 @@ test "approxEql.sum.near0.f32" {
 test "approxEql.sum.large.f64" {
     if (DBG) warn("\n");
     const T = f64;
-    var x: T = math.f64_max / f64(2);
-    var end: T = sum(T, x / f64(2), x, 1000);
+    var x: T = math.f64_max / T(2);
+    var end: T = sum(T, x / T(2), x, 1000);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
-    // ">=10" is used abs_diff=4.939e294 and using largest_times_fepsilon=1.99e292 would have failed all
-    // asserts by 0 digits. But largest_times_max_diff=8.98e306 and gave good results.
+    // ">=10" is used abs_diff=4.939e294 and using scaled_epsilon=1.99e292 would have failed all
+    // asserts by 0 digits. But largest_times_diff=8.98e306 and gave good results.
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -457,13 +459,13 @@ test "approxEql.sum.large.f64" {
 test "approxEql.sum.large.f32" {
     if (DBG) warn("\n");
     const T = f32;
-    var x: T = math.f32_max / f32(2);
-    var end: T = sum(T, x / f32(2), x, 100);
+    var x: T = math.f32_max / T(2);
+    var end: T = sum(T, x / T(2), x, 100);
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
-    // abs_diff=7.09e31 and using largest_times_fepsilon=2.02e31 would have failed all
-    // asserts by 0 digits. But largest_times_max_diff=1.70e37 and gave good results.
+    // abs_diff=7.09e31 and using scaled_epsilon=2.02e31 would have failed all
+    // asserts by 0 digits. But largest_times_diff=1.70e37 and gave good results.
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -507,7 +509,7 @@ test "approxEql.sub.near0.f64" {
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
-    // Either largest_times_fepsilon or largest_times_max_diff_10 worked
+    // Either scaled_epsilon or scaled_max_diff worked
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
@@ -536,7 +538,7 @@ test "approxEql.sub.near0.f32" {
     if (DBG) warn("x={} end={}\n", x, end);
     assert(x != end);
 
-    // Either largest_times_fepsilon or largest_times_max_diff_10 worked
+    // Either scaled_epsilon or scaled_max_diff worked
     assert(approxEql(x, end, 0));
     assert(approxEql(x, end, 1));
     assert(approxEql(x, end, 2));
