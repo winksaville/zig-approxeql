@@ -28,5 +28,4 @@ pub fn approxEqlUlps(comptime T: type, a: T, b: T, maxUlpsDiff: FloatUintType(T)
     return ulpsDiff(T, a, b) < maxUlpsDiff;
 }
 
-test "no tests" {
-}
+test "no tests" {}

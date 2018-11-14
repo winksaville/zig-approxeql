@@ -43,7 +43,9 @@ pub fn approxEql(x: var, y: var, digits: usize) bool {
     } else {
         var result: bool = undefined;
         warn("approxEql: x={} y={} digits={}", T(x), T(y), digits);
-        defer { warn(" result={}\n", result); }
+        defer {
+            warn(" result={}\n", result);
+        }
 
         if (digits == 0) {
             warn(" digits == 0");
@@ -355,7 +357,7 @@ test "approxEql.0.fepsilon*451" {
 /// the step is 0.1 and because of the imprecision of floating point
 /// errors are introduced.
 fn sum(comptime T: type, start: T, end: T, count: usize) T {
-    var step = (end - start)/@intToFloat(T, count);
+    var step = (end - start) / @intToFloat(T, count);
     var r: T = start;
 
     var j: usize = 0;
@@ -491,7 +493,7 @@ test "approxEql.sum.large.f32" {
 /// the step is 0.1 and because of the imprecision of floating point
 /// errors are introduced.
 fn sub(comptime T: type, start: T, end: T, count: usize) T {
-    var step = (start - end)/@intToFloat(T, count);
+    var step = (start - end) / @intToFloat(T, count);
     var r: T = start;
 
     var j: usize = 0;
@@ -582,27 +584,27 @@ test "approxEql.atan32" {
 test "approxEql.123e12.3.digits" {
     if (DBG) warn("\n");
     assert(!approxEql(f32(122.0e12), f32(123e12), 3));
-    assert( approxEql(f32(123.0e12), f32(123e12), 3));
+    assert(approxEql(f32(123.0e12), f32(123e12), 3));
     assert(!approxEql(f32(124.0e12), f32(123e12), 3));
 }
 
 test "approxEql.123e12.4.digits" {
     if (DBG) warn("\n");
     assert(!approxEql(f32(122.9e12), f32(123.0e12), 4));
-    assert( approxEql(f32(123.0e12), f32(123.0e12), 4));
+    assert(approxEql(f32(123.0e12), f32(123.0e12), 4));
     assert(!approxEql(f32(123.1e12), f32(123.0e12), 4));
 }
 
 test "approxEql.993e12.3.digits" {
     if (DBG) warn("\n");
-    assert( !approxEql(f32(992.0e12), f32(993e12), 3));
-    assert(  approxEql(f32(993.0e12), f32(993e12), 3));
-    assert( !approxEql(f32(994.0e12), f32(993e12), 3));
+    assert(!approxEql(f32(992.0e12), f32(993e12), 3));
+    assert(approxEql(f32(993.0e12), f32(993e12), 3));
+    assert(!approxEql(f32(994.0e12), f32(993e12), 3));
 }
 
 test "approxEql.993e12.4.digits" {
     if (DBG) warn("\n");
     assert(!approxEql(f32(992.9e12), f32(993.0e12), 4));
-    assert( approxEql(f32(993.0e12), f32(993.0e12), 4));
+    assert(approxEql(f32(993.0e12), f32(993.0e12), 4));
     assert(!approxEql(f32(993.1e12), f32(993.0e12), 4));
 }
